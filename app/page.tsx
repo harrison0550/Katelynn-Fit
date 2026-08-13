@@ -47,7 +47,7 @@ export default function Home() {
         setNotice("Your saved data could not be read. Nothing was replaced.");
       }
     }, 0);
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => undefined);
     return () => window.clearTimeout(loadSavedProgress);
   }, []);
 

@@ -1,6 +1,6 @@
 # Architecture
 
-Katelynn Fit is a mobile-first React application built with the Vinext Sites starter. The application is client-rendered and uses a single program data module as the source of truth for workout definitions.
+Katelynn Fit is a static, mobile-first React Progressive Web App built with Vite and published through GitHub Pages. It has no application server or account dependency. A single program data module is the source of truth for workout definitions.
 
 ## Boundaries
 
@@ -8,6 +8,7 @@ Katelynn Fit is a mobile-first React application built with the Vinext Sites sta
 - `app/page.tsx` renders navigation, workouts, education, and check-ins.
 - `app/globals.css` owns the light-pink visual system and responsive behavior.
 - `public/manifest.webmanifest` and `public/sw.js` provide the installable offline shell.
+- `.github/workflows/deploy-pages.yml` builds and publishes `main` to GitHub Pages.
 - Browser storage persists device-local progress under a versioned key.
 
 Completed workout dates and saved check-ins are facts. Future program changes must not silently rewrite them. Storage migrations must be additive and preserve malformed source data for recovery.
