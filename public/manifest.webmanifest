@@ -1,0 +1,9 @@
+{
+  "name": "Katelynn Fit",
+  "short_name": "Katelynn Fit",
+  "description": "A private beginner fitness companion.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff7fb",
+  "theme_color": "#fff7fb"
+}
