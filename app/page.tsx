@@ -11,6 +11,7 @@ type ProgressState = {
 };
 
 const STORAGE_KEY = "katelynn-fit-v1";
+const MEDIA_BASE = import.meta.env.BASE_URL;
 const EMPTY_PROGRESS: ProgressState = { completed: {}, setChecks: {}, checkIns: [] };
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -34,6 +35,7 @@ export default function Home() {
   const [activeDay, setActiveDay] = useState<WorkoutDay | null>(null);
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
   const [showCheckIn, setShowCheckIn] = useState(false);
+  const [expandedMedia, setExpandedMedia] = useState<Exercise["media"] | null>(null);
   const [weight, setWeight] = useState("");
   const [waist, setWaist] = useState("");
   const [notice, setNotice] = useState("");
@@ -111,7 +113,12 @@ export default function Home() {
     return (
       <main className="app-shell exercise-screen">
         <button className="back-button" onClick={() => setActiveExercise(null)}>← Back to workout</button>
-        <div className="exercise-hero"><span>{activeExercise.icon}</span></div>
+        {activeExercise.media ? (
+          <button className="exercise-hero media-hero" onClick={() => setExpandedMedia(activeExercise.media)} aria-label={`Enlarge ${activeExercise.name} demonstration`}>
+            <img src={`${MEDIA_BASE}${activeExercise.media.src}`} alt={activeExercise.media.alt} />
+            <span className="media-badge">Tap to enlarge</span>
+          </button>
+        ) : <div className="exercise-hero"><span>{activeExercise.icon}</span></div>}
         <p className="eyebrow">{activeExercise.type}</p>
         <h1>{activeExercise.name}</h1>
         <p className="lead">{activeExercise.prescription}</p>
@@ -193,13 +200,15 @@ export default function Home() {
         )}
 
         {tab === "learn" && (
-          <section><p className="eyebrow">EXERCISE LIBRARY</p><h2 className="page-title">Learn before you lift</h2><p className="page-intro">Every movement includes setup steps and a simple form reminder.</p><div className="library-grid">{allExercises.map((exercise) => <article className="card library-card" key={exercise.id}><span>{exercise.icon}</span><div><p className="eyebrow">{exercise.type}</p><h3>{exercise.name}</h3><p>{exercise.cue}</p></div></article>)}</div></section>
+          <section><p className="eyebrow">EXERCISE LIBRARY</p><h2 className="page-title">Learn before you lift</h2><p className="page-intro">Every movement includes setup steps and a simple form reminder. Reviewed demonstrations appear where they match the exercise.</p><div className="library-grid">{allExercises.map((exercise) => <article className="card library-card" key={exercise.id}>{exercise.media ? <button className="library-media" onClick={() => setExpandedMedia(exercise.media)} aria-label={`Enlarge ${exercise.name} demonstration`}><img src={`${MEDIA_BASE}${exercise.media.src}`} alt={exercise.media.alt} /></button> : <span>{exercise.icon}</span>}<div><p className="eyebrow">{exercise.type}</p><h3>{exercise.name}</h3><p>{exercise.cue}</p>{exercise.media && <small className="media-source">{exercise.media.label}</small>}</div></article>)}</div></section>
         )}
 
         {tab === "profile" && (
           <section><p className="eyebrow">MY PROFILE</p><h2 className="page-title">Built for your home gym</h2><div className="card profile-card"><div className="profile-avatar">KF</div><h3>Foundation Beginner</h3><p>Five planned workouts · Under 60 minutes</p></div><div className="card"><h3>Available equipment</h3><div className="equipment-tags"><span>iFIT rower</span><span>Treadmill</span><span>Smith machine</span><span>Cable station</span><span>Bench</span><span>Dumbbells</span><span>Plates</span></div></div><div className="card safety-card"><h3>Train safely</h3><p>Use an adult spotter for unfamiliar equipment. Keep weights light while learning. Stop for sharp pain, dizziness, chest pain, or unusual breathing trouble.</p></div><div className="card privacy-card"><h3>Your data is private</h3><p>Workout history and measurements are stored only in this browser on this device.</p></div></section>
         )}
       </main>
+
+      {expandedMedia && <div className="modal-backdrop"><section className="modal media-modal" role="dialog" aria-modal="true" aria-labelledby="media-title"><button className="modal-close" aria-label="Close exercise demonstration" onClick={() => setExpandedMedia(null)}>×</button><p className="eyebrow">EXERCISE DEMONSTRATION</p><h2 id="media-title">{expandedMedia.label}</h2><img src={`${MEDIA_BASE}${expandedMedia.src}`} alt={expandedMedia.alt} /><p>{expandedMedia.alt}.</p><small>Written setup, movement, and safety cues remain the authoritative guide.</small></section></div>}
 
       {showCheckIn && <div className="modal-backdrop"><section className="modal" role="dialog" aria-modal="true" aria-labelledby="checkin-title"><button className="modal-close" aria-label="Close check-in" onClick={() => setShowCheckIn(false)}>×</button><p className="eyebrow">WEEKLY CHECK-IN</p><h2 id="checkin-title">How are things trending?</h2><form onSubmit={saveCheckIn}><label>Weight (lb)<input value={weight} onChange={(event) => setWeight(event.target.value)} type="number" inputMode="decimal" step="0.1" required /></label><label>Waist (inches) <small>Optional</small><input value={waist} onChange={(event) => setWaist(event.target.value)} type="number" inputMode="decimal" step="0.1" /></label><p className="form-note">This is one data point—not a grade. Weekly trends matter more than daily changes.</p><button className="primary-button" type="submit">Save private check-in</button></form></section></div>}
 

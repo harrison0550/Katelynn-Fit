@@ -1,13 +1,14 @@
 {
   "name": "katelynn-fit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ignore-pattern dist"
+    "lint": "eslint . --ignore-pattern dist",
+    "test": "node scripts/validate-media.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "6.0.2",

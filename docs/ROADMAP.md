@@ -8,13 +8,15 @@
 - [x] Set completion and workout history
 - [x] Optional private weight and waist check-ins
 - [x] Installable offline foundation
+- [x] Port the complete reviewed CarrieFit exercise-media collection
+- [x] Add matched visuals, enlargement, accessible descriptions, and offline caching
 
 ## Foundation 0.2
 
 - [ ] Post-workout effort, comfort, and enjoyment feedback
 - [ ] Cardio duration and distance history
 - [ ] Simple rest timers with background-safe completion
-- [ ] Parent-reviewed equipment illustrations
+- [x] Parent-reviewed equipment illustrations for matching current exercises
 - [ ] Backup export and import
 
 ## Later

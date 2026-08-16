@@ -3,7 +3,7 @@
 ## Current release
 
 - Product: Katelynn Fit
-- Version: 0.1.0 foundation
+- Version: 0.3.0 media integration
 - Status: first working GitHub Pages application
 - Audience: a new teenage trainee using a parent-supervised home gym
 
@@ -14,6 +14,8 @@ The application has five primary destinations: Home, Plan, Progress, Learn, and 
 Progress data is intentionally device-local. Completed workouts, checked sets, and optional body check-ins use the versioned `katelynn-fit-v1` browser-storage key.
 
 Production is deployed from `main` to `https://harrison0550.github.io/Katelynn-Fit/` using GitHub Actions. The app must remain a fully static PWA so core workouts never depend on an application server.
+
+Release 0.3 ports CarrieFit's reviewed exercise media and pink install icons. Exact or safely applicable demonstrations now appear for treadmill walking, the squat pattern, seated cable rows, dead bugs, rowing technique, breathing cooldowns, lat pulldowns, bird dogs, and the hip-hinge pattern. The complete approved CarrieFit media set is stored locally and precached for future matching; exercises without an accurate match continue to use written instruction.
 
 ## Guardrails
 

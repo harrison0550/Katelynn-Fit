@@ -7,6 +7,12 @@ export type Exercise = {
   icon: string;
   cue: string;
   steps: string[];
+  media?: {
+    src: string;
+    alt: string;
+    label: string;
+    source: "app-original" | "official-equipment" | "licensed-community";
+  };
 };
 
 export type WorkoutDay = {
@@ -38,6 +44,75 @@ const treadmillIntervals = exercise("treadmill-intervals", "Treadmill discovery 
 const stepUp = exercise("step-up", "Low bench step-up", "Strength", "2 sets · 6–8 reps each side", 2, "↥", "Use a low, stable platform and hold support while learning.", ["Choose the lowest stable step and stand close to it beside the rack.", "Place your whole foot on top and stand up through that leg.", "Step down slowly, finish the side, then switch."]);
 const dumbbellRdl = exercise("db-rdl", "Light dumbbell hip hinge", "Strength", "2 sets · 8–10 reps", 2, "⌁", "Push your hips back while keeping the weights close to your legs.", ["Practice without weight first, then hold very light dumbbells at your thighs.", "Soften your knees and push your hips backward with a long spine.", "Stop when your hamstrings feel a gentle stretch, then squeeze your glutes to stand."]);
 const farmerCarry = exercise("farmer-carry", "Dumbbell farmer carry", "Strength", "2 walks · 30 seconds", 2, "↔", "Walk tall with light weights and plenty of clear floor space.", ["Clear your walking path and pick up two light dumbbells safely.", "Stand tall with arms by your sides and walk with controlled steps.", "Set the weights down by bending your knees and hips—not rounding your back."]);
+
+const MEDIA = {
+  treadmillWalk: {
+    src: "assets/exercise-library/generated/treadmill-easy-walk.gif",
+    alt: "Looping side-view demonstration of a woman walking upright on a treadmill with relaxed shoulders, free arms, and the safety clip attached",
+    label: "App-created treadmill demonstration",
+    source: "app-original" as const,
+  },
+  squatPosture: {
+    src: "assets/exercise-library/original/bodyweight-squat-posture.webp",
+    alt: "Side-by-side illustration of a tall squat start and a controlled squat with heels planted, knees tracking over the toes, and arms extended forward",
+    label: "App-created squat posture reference",
+    source: "app-original" as const,
+  },
+  seatedCableRow: {
+    src: "assets/exercise-library/ritfit/seated-cable-row.webp",
+    alt: "RitFit seated cable row start and finish positions",
+    label: "Official RitFit equipment guide",
+    source: "official-equipment" as const,
+  },
+  deadBug: {
+    src: "assets/exercise-library/generated/dead-bug-female.gif",
+    alt: "Looping female demonstration of a controlled dead bug, alternating one arm and the opposite leg while keeping the lower back supported",
+    label: "App-created dead bug demonstration",
+    source: "app-original" as const,
+  },
+  rowerTechnique: {
+    src: "assets/phase3/rower-technique.jpg",
+    alt: "Four-position rowing reference showing the catch, drive, finish, and recovery sequence with legs driving first and arms returning first",
+    label: "Rower technique reference",
+    source: "app-original" as const,
+  },
+  breathingCooldown: {
+    src: "assets/exercise-library/generated/slow-breathing-female.gif",
+    alt: "Looping female demonstration of relaxed seated breathing with the hands around the lower ribs",
+    label: "App-created breathing demonstration",
+    source: "app-original" as const,
+  },
+  latPulldown: {
+    src: "assets/exercise-library/original/lat-pulldown-red-cage.webp",
+    alt: "Start and finish positions for a seated lat pulldown on a red cage-style Smith machine, bringing the wide bar toward the upper chest",
+    label: "App-created home-gym equipment guide",
+    source: "app-original" as const,
+  },
+  birdDog: {
+    src: "assets/exercise-library/generated/bird-dog-female.gif",
+    alt: "Looping female demonstration of a bird dog, alternating the left arm with right leg and the right arm with left leg while keeping the torso level",
+    label: "App-created bird dog demonstration",
+    source: "app-original" as const,
+  },
+  hipHinge: {
+    src: "assets/exercise-library/original/hip-hinge-posture.webp",
+    alt: "Side-by-side illustration of a standing start and a hip hinge with soft knees, hips pushed backward, and a long neutral spine",
+    label: "App-created hip-hinge posture reference",
+    source: "app-original" as const,
+  },
+};
+
+warmupWalk.media = MEDIA.treadmillWalk;
+benchSquat.media = MEDIA.squatPosture;
+cableRow.media = MEDIA.seatedCableRow;
+deadBug.media = MEDIA.deadBug;
+rowEasy.media = MEDIA.rowerTechnique;
+rowIntervals.media = MEDIA.rowerTechnique;
+cooldown.media = MEDIA.breathingCooldown;
+latPulldown.media = MEDIA.latPulldown;
+birdDog.media = MEDIA.birdDog;
+treadmillIntervals.media = MEDIA.treadmillWalk;
+dumbbellRdl.media = MEDIA.hipHinge;
 
 export const PROGRAM: WorkoutDay[] = [
   { id: "monday-foundation-a", day: "Monday", title: "Foundation A", focus: "Learn the basic squat, push, pull, and core patterns.", duration: "45–50 min", icon: "A", exercises: [warmupWalk, benchSquat, cableRow, inclinePushup, gluteBridge, deadBug, cooldown] },

@@ -60,6 +60,9 @@ button:focus-visible,input:focus-visible { outline:3px solid #7b315c; outline-of
 .empty-state h3 { color:var(--plum); }
 .library-card { display:flex; gap:14px; align-items:flex-start; box-shadow:none; }
 .library-card > span { display:grid; place-items:center; flex:0 0 48px; height:48px; border-radius:16px; background:var(--pink-100); color:var(--pink-600); font-size:1.25rem; }
+.library-media { flex:0 0 76px; width:76px; height:76px; padding:0; border:1px solid var(--line); border-radius:16px; overflow:hidden; background:var(--pink-50); cursor:zoom-in; }
+.library-media img { width:100%; height:100%; display:block; object-fit:contain; }
+.media-source { display:block; margin-top:9px; color:var(--pink-600); font-size:.72rem; font-weight:750; }
 .profile-card { text-align:center; margin-bottom:12px; }
 .profile-avatar { width:76px; height:76px; margin:0 auto 12px; font-size:1.3rem; }
 .equipment-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:13px; }
@@ -77,6 +80,9 @@ button:focus-visible,input:focus-visible { outline:3px solid #7b315c; outline-of
 .exercise-number { display:grid; place-items:center; width:38px; height:38px; border-radius:13px; background:var(--pink-100); color:var(--pink-600); font-weight:900; }
 .exercise-hero { display:grid; place-items:center; height:180px; margin-bottom:22px; border-radius:28px; background:linear-gradient(145deg,#ffe9f3,#f4bfd8); overflow:hidden; }
 .exercise-hero span { font-size:4.5rem; filter:drop-shadow(0 9px 10px rgba(116,43,78,.12)); }
+.media-hero { position:relative; width:100%; padding:0; border:1px solid #efc9db; cursor:zoom-in; }
+.media-hero img { width:100%; height:100%; display:block; object-fit:contain; background:#fff; }
+.media-hero .media-badge { position:absolute; right:12px; bottom:12px; padding:7px 10px; border-radius:999px; background:rgba(82,37,61,.88); color:#fff; font-size:.72rem; font-weight:800; filter:none; }
 .coaching-card,.soft-card { margin-top:14px; box-shadow:none; }
 .coaching-card h2,.soft-card h2 { color:var(--plum); }
 .coaching-card li { padding:5px 0; color:var(--muted); line-height:1.5; }
@@ -97,5 +103,8 @@ button:focus-visible,input:focus-visible { outline:3px solid #7b315c; outline-of
 .modal label small { color:var(--muted); font-weight:500; }
 .modal input { width:100%; min-height:52px; border:1px solid #dab8c9; border-radius:14px; padding:12px 14px; color:var(--ink); background:#fffafd; }
 .form-note { margin:0; color:var(--muted); font-size:.88rem; line-height:1.45; }
+.media-modal img { width:100%; max-height:58dvh; display:block; object-fit:contain; border:1px solid var(--line); border-radius:18px; background:var(--pink-50); }
+.media-modal p { color:var(--muted); line-height:1.5; }
+.media-modal > small { display:block; color:#856c79; line-height:1.45; }
 @media (min-width:620px) { .app-shell { padding-left:28px; padding-right:28px; } .library-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .modal-backdrop { align-items:center; padding:24px; } .modal { border-radius:28px; padding:30px; } }
 @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }

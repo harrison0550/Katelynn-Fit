@@ -11,6 +11,7 @@ Production app: [harrison0550.github.io/Katelynn-Fit](https://harrison0550.githu
 - Keep weight and measurement check-ins private, optional, and trend-focused.
 - Avoid aggressive weight-loss deadlines, calorie prescriptions, and appearance-based pressure.
 - Remain comfortable to use one-handed on a small phone.
+- Use reviewed CarrieFit animations and equipment guides only where they accurately support the programmed movement.
 
 ## First program
 
