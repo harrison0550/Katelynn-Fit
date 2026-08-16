@@ -6,6 +6,8 @@ Katelynn Fit reuses the reviewed exercise-media system created for CarrieFit. Vi
 
 Female exercise loops, treadmill demonstrations, posture illustrations, the home-gym lat-pulldown guide, and the rowing technique reference are app-created instructional media originally reviewed for CarrieFit and reused in Katelynn Fit where the movement matches.
 
+The complete CarrieFit 1.2 animation audit is stored locally for consistent family-app coverage. Katelynn Fit currently activates only exact matches in her beginner program. Seated cable row and lat pulldown keep the animated movement demonstration paired with the retained equipment reference; bench squat and dumbbell hip hinge keep their posture references paired with the movement loop.
+
 ## RitFit equipment references
 
 Official RitFit workout-poster excerpts are stored under `public/assets/exercise-library/ritfit`. They were supplied by the user as equipment-specific references for the family home gym. RitFit remains the source and copyright owner.

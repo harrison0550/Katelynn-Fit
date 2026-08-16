@@ -1,3 +1,11 @@
+export type ExerciseMedia = {
+  src: string;
+  alt: string;
+  label: string;
+  source: "app-original" | "official-equipment" | "licensed-community";
+  reference?: Omit<ExerciseMedia, "reference">;
+};
+
 export type Exercise = {
   id: string;
   name: string;
@@ -7,12 +15,7 @@ export type Exercise = {
   icon: string;
   cue: string;
   steps: string[];
-  media?: {
-    src: string;
-    alt: string;
-    label: string;
-    source: "app-original" | "official-equipment" | "licensed-community";
-  };
+  media?: ExerciseMedia;
 };
 
 export type WorkoutDay = {
@@ -58,11 +61,29 @@ const MEDIA = {
     label: "App-created squat posture reference",
     source: "app-original" as const,
   },
+  squatAnimation: {
+    src: "assets/exercise-library/generated/bodyweight-squat-female.gif",
+    alt: "Looping female demonstration of a controlled squat pattern, sitting the hips back with heels planted and standing tall",
+    label: "CarrieFit squat movement demonstration",
+    source: "app-original" as const,
+    reference: {
+      src: "assets/exercise-library/original/bodyweight-squat-posture.webp",
+      alt: "Side-by-side illustration of a tall squat start and a controlled squat with heels planted, knees tracking over the toes, and arms extended forward",
+      label: "App-created squat posture reference",
+      source: "app-original" as const,
+    },
+  },
   seatedCableRow: {
-    src: "assets/exercise-library/ritfit/seated-cable-row.webp",
-    alt: "RitFit seated cable row start and finish positions",
-    label: "Official RitFit equipment guide",
-    source: "official-equipment" as const,
+    src: "assets/exercise-library/generated/seated-cable-row-female.gif",
+    alt: "Looping female demonstration of a seated cable row, pulling the handle toward the lower ribs with a tall torso and controlled return",
+    label: "CarrieFit seated cable row animation",
+    source: "app-original" as const,
+    reference: {
+      src: "assets/exercise-library/ritfit/seated-cable-row.webp",
+      alt: "RitFit seated cable row start and finish positions",
+      label: "Official RitFit equipment guide",
+      source: "official-equipment" as const,
+    },
   },
   deadBug: {
     src: "assets/exercise-library/generated/dead-bug-female.gif",
@@ -83,10 +104,16 @@ const MEDIA = {
     source: "app-original" as const,
   },
   latPulldown: {
-    src: "assets/exercise-library/original/lat-pulldown-red-cage.webp",
-    alt: "Start and finish positions for a seated lat pulldown on a red cage-style Smith machine, bringing the wide bar toward the upper chest",
-    label: "App-created home-gym equipment guide",
+    src: "assets/exercise-library/generated/lat-pulldown-female.gif",
+    alt: "Looping female demonstration of a front lat pulldown, drawing the elbows down and bringing the bar toward the upper chest",
+    label: "CarrieFit lat pulldown animation",
     source: "app-original" as const,
+    reference: {
+      src: "assets/exercise-library/original/lat-pulldown-red-cage.webp",
+      alt: "Start and finish positions for a seated lat pulldown on a red cage-style Smith machine, bringing the wide bar toward the upper chest",
+      label: "App-created home-gym equipment guide",
+      source: "app-original" as const,
+    },
   },
   birdDog: {
     src: "assets/exercise-library/generated/bird-dog-female.gif",
@@ -95,15 +122,21 @@ const MEDIA = {
     source: "app-original" as const,
   },
   hipHinge: {
-    src: "assets/exercise-library/original/hip-hinge-posture.webp",
-    alt: "Side-by-side illustration of a standing start and a hip hinge with soft knees, hips pushed backward, and a long neutral spine",
-    label: "App-created hip-hinge posture reference",
+    src: "assets/exercise-library/generated/hip-hinge-female.gif",
+    alt: "Looping female demonstration of a controlled hip hinge with soft knees, hips moving backward, and a long neutral spine",
+    label: "CarrieFit hip-hinge animation",
     source: "app-original" as const,
+    reference: {
+      src: "assets/exercise-library/original/hip-hinge-posture.webp",
+      alt: "Side-by-side illustration of a standing start and a hip hinge with soft knees, hips pushed backward, and a long neutral spine",
+      label: "App-created hip-hinge posture reference",
+      source: "app-original" as const,
+    },
   },
 };
 
 warmupWalk.media = MEDIA.treadmillWalk;
-benchSquat.media = MEDIA.squatPosture;
+benchSquat.media = MEDIA.squatAnimation;
 cableRow.media = MEDIA.seatedCableRow;
 deadBug.media = MEDIA.deadBug;
 rowEasy.media = MEDIA.rowerTechnique;

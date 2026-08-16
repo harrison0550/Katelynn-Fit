@@ -20,6 +20,7 @@
 - [x] Resumable workouts and append-only detailed session history
 - [x] Monthly calendar with planned workouts, completed history, and direct workout launch
 - [x] Parent-reviewed equipment illustrations for matching current exercises
+- [x] Complete CarrieFit 1.2 animation library audit with dual animation/reference presentation
 - [ ] Backup export and import
 
 ## Later

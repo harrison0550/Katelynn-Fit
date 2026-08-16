@@ -19,3 +19,5 @@ The Calendar is a read-only projection of the weekly program and append-only com
 Workout timers persist an absolute wall-clock finish timestamp. The interface reconciles remaining time every second and when the document regains visibility or focus, so a locked screen or suspended iPhone PWA does not make the timer inaccurate. Timer completion uses a locally generated chime, vibration when supported, and a visible status message. A timer never marks an exercise complete automatically.
 
 Exercise media is locally bundled and precached. App-created illustrations and animations must be labelled, include meaningful alternative text, and remain secondary to written coaching. Media provenance and license notes live in `docs/MEDIA_CREDITS.md`.
+
+An exercise may define an animated primary demonstration plus a static `reference`. The workout screen presents both for matched equipment movements: animation teaches the movement sequence, while the retained reference teaches machine orientation, attachment position, or posture. Assets in the reviewed library are not automatically activated by filename; `app/program.ts` must explicitly match them to the programmed movement.
