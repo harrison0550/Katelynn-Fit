@@ -18,6 +18,7 @@
 - [x] Exercise and rest timers with background-safe completion
 - [x] Per-set weight, repetition, and completion logs
 - [x] Resumable workouts and append-only detailed session history
+- [x] Monthly calendar with planned workouts, completed history, and direct workout launch
 - [x] Parent-reviewed equipment illustrations for matching current exercises
 - [ ] Backup export and import
 

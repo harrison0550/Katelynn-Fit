@@ -1,4 +1,4 @@
-const CACHE = "katelynn-fit-v4-workout-logging";
+const CACHE = "katelynn-fit-v5-calendar";
 const BASE = "/Katelynn-Fit/";
 const paths = [
   "",
