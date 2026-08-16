@@ -13,9 +13,11 @@
 
 ## Foundation 0.2
 
-- [ ] Post-workout effort, comfort, and enjoyment feedback
-- [ ] Cardio duration and distance history
-- [ ] Simple rest timers with background-safe completion
+- [x] Cardio effort and enjoyment feedback
+- [x] Cardio duration and distance history
+- [x] Exercise and rest timers with background-safe completion
+- [x] Per-set weight, repetition, and completion logs
+- [x] Resumable workouts and append-only detailed session history
 - [x] Parent-reviewed equipment illustrations for matching current exercises
 - [ ] Backup export and import
 

@@ -1,6 +1,6 @@
 # Katelynn Fit
 
-Katelynn Fit is a private-data, beginner-friendly workout companion for a five-day home-gym program. It combines three full-body strength sessions with dedicated rowing and treadmill discovery days, all designed to stay under one hour.
+Katelynn Fit is a private-data, beginner-friendly workout companion for a five-day home-gym program. It combines three full-body strength sessions with dedicated rowing and treadmill discovery days, all designed to stay under one hour. Background-safe timers, strength-set logs, cardio results, and detailed workout history support each session.
 
 Production app: [harrison0550.github.io/Katelynn-Fit](https://harrison0550.github.io/Katelynn-Fit/)
 
@@ -44,7 +44,7 @@ Every push to `main` builds and publishes the static app through GitHub Pages.
 
 ## Data and privacy
 
-Workout completion, set checks, and body check-ins are stored locally in the browser under the versioned `katelynn-fit-v1` key. The first release has no account, advertising, analytics, or remote health-data storage.
+Workout completion, active workout progress, detailed session history, and body check-ins are stored locally in the browser under the versioned `katelynn-fit-v1` key. The app has no account, advertising, analytics, or remote health-data storage.
 
 ## Safety scope
 
