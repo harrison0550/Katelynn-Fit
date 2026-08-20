@@ -1,4 +1,4 @@
-const CACHE = "katelynn-fit-v7-timer-upgrade";
+const CACHE = "katelynn-fit-v8-treadmill-guidance";
 const BASE = "/Katelynn-Fit/";
 const paths = [
   "",

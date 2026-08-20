@@ -22,6 +22,7 @@
 - [x] Parent-reviewed equipment illustrations for matching current exercises
 - [x] Complete CarrieFit 1.2 animation library audit with dual animation/reference presentation
 - [x] Family-app timer parity: automatic rest, reliable restart, cross-exercise status, cardio capture, and Keep Going
+- [x] Minute-by-minute treadmill warm-up, interval, and cooldown settings with talk-test guardrails
 - [ ] Backup export and import
 
 ## Later

@@ -3,7 +3,7 @@
 ## Current release
 
 - Product: Katelynn Fit
-- Version: 0.7.0 reliable workout timers
+- Version: 0.8.0 guided treadmill settings
 - Status: first working GitHub Pages application
 - Audience: a new teenage trainee using a parent-supervised home gym
 
@@ -24,6 +24,8 @@ Release 0.5 replaces the weekly Plan tab with a monthly Calendar consistent with
 Release 0.6 replicates CarrieFit 1.2's completed visual audit. All 24 newly approved female movement loops are stored and precached offline. Exact current-program matches replace static-only movement previews for the bench squat pattern, seated cable row, lat pulldown, and dumbbell hip hinge. Equipment and posture references remain visible beside the animation rather than being displaced. Unmatched animations remain inactive until Katelynn's program contains the corresponding exercise.
 
 Release 0.7 upgrades timer behavior to the mature family-app mechanics. Completing a strength set starts a 90-second rest automatically. Running or paused timers remain visible across exercise navigation and cannot be silently replaced. Countdown completion can restart at the original duration, cardio targets prefill actual minutes, Keep Going extends cardio beyond the target, and Stop finalizes measured cardio time. Audio is prepared from the initiating user action for stronger iPhone compatibility, while absolute wall-clock timestamps preserve accuracy across screen locks, app switches, refreshes, and page restoration.
+
+Release 0.8 adds minute-by-minute treadmill settings for the five-minute warm-up, the 24-minute discovery walk, and a dedicated five-minute treadmill cooldown. Each stage names a conservative speed range, 0% incline, and an effort/talk-test target. The lowest speed is always the starting point; 0.1–0.2 mph adjustments and relative effort take priority over reaching the top of a range.
 
 ## Guardrails
 
