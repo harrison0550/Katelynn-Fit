@@ -3,7 +3,7 @@
 ## Current release
 
 - Product: Katelynn Fit
-- Version: 0.6.0 complete CarrieFit animation audit
+- Version: 0.7.0 reliable workout timers
 - Status: first working GitHub Pages application
 - Audience: a new teenage trainee using a parent-supervised home gym
 
@@ -23,6 +23,8 @@ Release 0.5 replaces the weekly Plan tab with a monthly Calendar consistent with
 
 Release 0.6 replicates CarrieFit 1.2's completed visual audit. All 24 newly approved female movement loops are stored and precached offline. Exact current-program matches replace static-only movement previews for the bench squat pattern, seated cable row, lat pulldown, and dumbbell hip hinge. Equipment and posture references remain visible beside the animation rather than being displaced. Unmatched animations remain inactive until Katelynn's program contains the corresponding exercise.
 
+Release 0.7 upgrades timer behavior to the mature family-app mechanics. Completing a strength set starts a 90-second rest automatically. Running or paused timers remain visible across exercise navigation and cannot be silently replaced. Countdown completion can restart at the original duration, cardio targets prefill actual minutes, Keep Going extends cardio beyond the target, and Stop finalizes measured cardio time. Audio is prepared from the initiating user action for stronger iPhone compatibility, while absolute wall-clock timestamps preserve accuracy across screen locks, app switches, refreshes, and page restoration.
+
 ## Guardrails
 
 - Prioritize movement quality, confidence, and consistency over exhaustion.
@@ -35,7 +37,7 @@ Release 0.6 replicates CarrieFit 1.2's completed visual audit. All 24 newly appr
 
 ## Next priorities
 
-1. Test timers and logging during the first two weeks with Katelynn.
+1. Confirm timer audio and vibration on Katelynn's installed iPhone PWA.
 2. Add backup export and import for the expanded local history.
 3. Add adjustable workout scheduling without rewriting completed history.
 4. Activate additional reviewed animations only when the matching exercise enters Katelynn's program.

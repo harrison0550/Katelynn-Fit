@@ -16,7 +16,9 @@ Completed workout dates and saved check-ins are facts. Future program changes mu
 
 The Calendar is a read-only projection of the weekly program and append-only completed session history. It calculates the planned workout from each date's weekday, while completed markers use the session's saved local date. Opening or starting from a calendar day does not rewrite history or create a scheduled-session record.
 
-Workout timers persist an absolute wall-clock finish timestamp. The interface reconciles remaining time every second and when the document regains visibility or focus, so a locked screen or suspended iPhone PWA does not make the timer inaccurate. Timer completion uses a locally generated chime, vibration when supported, and a visible status message. A timer never marks an exercise complete automatically.
+Workout timers persist an absolute wall-clock finish timestamp. The interface reconciles remaining time every second and when the document regains visibility, focus, or a restored page, so a locked screen or suspended iPhone PWA does not make the timer inaccurate. Timer audio is prepared during the initiating user action and reused for the completion chime; vibration and a visible status message supplement it. A timer never marks an exercise complete automatically.
+
+Completing a strength set starts its 90-second rest. Only one workout timer may be active or paused at a time, and its status remains visible across exercise navigation. Cardio countdown completion prefills actual duration and may transition into a persisted Keep Going interval. Stopping cardio finalizes measured elapsed time without changing the prescribed target.
 
 Exercise media is locally bundled and precached. App-created illustrations and animations must be labelled, include meaningful alternative text, and remain secondary to written coaching. Media provenance and license notes live in `docs/MEDIA_CREDITS.md`.
 

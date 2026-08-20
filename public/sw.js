@@ -1,4 +1,4 @@
-const CACHE = "katelynn-fit-v6-animation-audit";
+const CACHE = "katelynn-fit-v7-timer-upgrade";
 const BASE = "/Katelynn-Fit/";
 const paths = [
   "",

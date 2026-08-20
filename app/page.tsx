@@ -1,12 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PROGRAM, type Exercise, type WorkoutDay } from "./program";
 
 type Tab = "home" | "calendar" | "progress" | "learn" | "profile";
 type SetLog = { weight: string; reps: string; done: boolean };
 type CardioLog = { minutes: string; distance: string; effort: string; enjoyment: string };
-type TimerState = { exerciseId: string; label: string; endsAt: number | null; remainingSeconds: number; totalSeconds: number };
+type TimerState = {
+  exerciseId: string;
+  label: string;
+  endsAt: number | null;
+  remainingSeconds: number;
+  totalSeconds: number;
+  mode?: "countdown" | "extended";
+  status?: "running" | "paused" | "complete";
+  extendedStartedAt?: number | null;
+  elapsedSeconds?: number;
+};
 type ActiveWorkout = { workoutId: string; startedAt: string; setLogs: Record<string, SetLog>; cardioLogs: Record<string, CardioLog>; timer?: TimerState };
 type ExerciseSnapshot = { id: string; name: string; type: Exercise["type"]; prescription: string; sets: SetLog[]; cardio?: CardioLog };
 type WorkoutSession = { id: string; workoutId: string; title: string; date: string; completedAt: string; durationMinutes: number; exercises: ExerciseSnapshot[] };
@@ -37,6 +47,7 @@ function findToday() {
 function legacySetKey(dayId: string, exerciseId: string, set: number) { return `${dayId}:${exerciseId}:${set}`; }
 function setKey(exerciseId: string, set: number) { return `${exerciseId}:${set}`; }
 function formatTimer(seconds: number) { return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`; }
+function wallClockNow() { return new Date().getTime(); }
 function displayDate(date: string) { return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" }); }
 function dateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
 function workoutForDate(date: Date) { return PROGRAM.find((day) => day.day === dayNames[date.getDay()]); }
@@ -46,11 +57,27 @@ function calendarCells(month: Date) {
   return Array.from({ length: 42 }, (_, index) => { const date = new Date(start); date.setDate(start.getDate() + index); return date; });
 }
 
-function playTimerCue() {
+function timerRemaining(timer: TimerState, now: number) {
+  return timer.endsAt ? Math.max(0, Math.ceil((timer.endsAt - now) / 1000)) : Math.max(0, timer.remainingSeconds);
+}
+
+function timerElapsed(timer: TimerState, now: number) {
+  const saved = Math.max(0, timer.elapsedSeconds ?? timer.totalSeconds);
+  return timer.mode === "extended" && timer.extendedStartedAt ? saved + Math.max(0, Math.floor((now - timer.extendedStartedAt) / 1000)) : saved;
+}
+
+function findExercise(exerciseId: string) {
+  for (const day of PROGRAM) {
+    const found = day.exercises.find((exercise) => exercise.id === exerciseId);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+function playTimerCue(context: AudioContext | null) {
   try {
-    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (AudioContextClass) {
-      const context = new AudioContextClass();
+    if (context) {
+      void context.resume().then(() => {
       const oscillator = context.createOscillator();
       const gain = context.createGain();
       oscillator.frequency.value = 660;
@@ -60,6 +87,7 @@ function playTimerCue() {
       oscillator.connect(gain).connect(context.destination);
       oscillator.start();
       oscillator.stop(context.currentTime + 0.56);
+      }).catch(() => undefined);
     }
     navigator.vibrate?.([180, 80, 180]);
   } catch { /* The visual completion state remains available when audio is blocked. */ }
@@ -79,6 +107,16 @@ export default function Home() {
   const [waist, setWaist] = useState("");
   const [notice, setNotice] = useState("");
   const [clock, setClock] = useState(() => Date.now());
+  const timerAudio = useRef<AudioContext | null>(null);
+
+  function prepareTimerAudio() {
+    try {
+      const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) return;
+      timerAudio.current ??= new AudioContextClass();
+      if (timerAudio.current.state === "suspended") void timerAudio.current.resume().catch(() => undefined);
+    } catch { /* Visual and vibration completion cues remain available. */ }
+  }
 
   useEffect(() => {
     const loadSavedProgress = window.setTimeout(() => {
@@ -96,27 +134,39 @@ export default function Home() {
 
   const timer = progress.activeWorkout?.timer;
   useEffect(() => {
-    if (!timer?.endsAt) return;
+    const countdownRunning = Boolean(timer?.endsAt);
+    const extendedRunning = timer?.mode === "extended" && Boolean(timer.extendedStartedAt);
+    if (!timer || (!countdownRunning && !extendedRunning)) return;
     const sync = () => {
-      const remaining = Math.max(0, Math.ceil((timer.endsAt! - Date.now()) / 1000));
-      setClock(Date.now());
-      if (remaining === 0) {
-        playTimerCue();
+      const now = Date.now();
+      const remaining = timerRemaining(timer, now);
+      setClock(now);
+      if (timer.endsAt && remaining === 0) {
+        playTimerCue(timerAudio.current);
         setProgress((current) => {
-          if (!current.activeWorkout?.timer?.endsAt) return current;
-          const next = { ...current, activeWorkout: { ...current.activeWorkout, timer: { ...current.activeWorkout.timer, endsAt: null, remainingSeconds: 0 } } };
+          const currentTimer = current.activeWorkout?.timer;
+          if (!currentTimer?.endsAt || currentTimer.endsAt !== timer.endsAt) return current;
+          const exercise = findExercise(currentTimer.exerciseId);
+          const nextCardioLogs = { ...current.activeWorkout!.cardioLogs };
+          if (exercise?.sets === 0) {
+            const prior = nextCardioLogs[exercise.id] ?? { minutes: "", distance: "", effort: "", enjoyment: "" };
+            nextCardioLogs[exercise.id] = { ...prior, minutes: String(Math.round(currentTimer.totalSeconds / 6) / 10) };
+          }
+          const nextTimer: TimerState = { ...currentTimer, endsAt: null, remainingSeconds: 0, mode: "countdown", status: "complete", elapsedSeconds: currentTimer.totalSeconds };
+          const next = { ...current, activeWorkout: { ...current.activeWorkout!, cardioLogs: nextCardioLogs, timer: nextTimer } };
           window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
           return next;
         });
-        setNotice("Timer complete — ready when you are.");
+        setNotice(findExercise(timer.exerciseId)?.sets === 0 ? "Target complete — stop here or keep going." : "Rest complete — begin when ready.");
       }
     };
     sync();
     const interval = window.setInterval(sync, 1000);
     document.addEventListener("visibilitychange", sync);
     window.addEventListener("focus", sync);
-    return () => { window.clearInterval(interval); document.removeEventListener("visibilitychange", sync); window.removeEventListener("focus", sync); };
-  }, [timer?.endsAt]);
+    window.addEventListener("pageshow", sync);
+    return () => { window.clearInterval(interval); document.removeEventListener("visibilitychange", sync); window.removeEventListener("focus", sync); window.removeEventListener("pageshow", sync); };
+  }, [timer]);
 
   function save(next: ProgressState, message?: string) {
     setProgress(next);
@@ -154,7 +204,14 @@ export default function Home() {
     const key = setKey(exercise.id, setNumber);
     const legacyDone = !!progress.setChecks[legacySetKey(progress.activeWorkout.workoutId, exercise.id, setNumber)];
     const current = progress.activeWorkout.setLogs[key] ?? { weight: "", reps: "", done: legacyDone };
-    save({ ...progress, activeWorkout: { ...progress.activeWorkout, setLogs: { ...progress.activeWorkout.setLogs, [key]: { ...current, ...patch } } } });
+    const existingTimer = progress.activeWorkout.timer;
+    const otherTimerBusy = Boolean(existingTimer && existingTimer.exerciseId !== exercise.id && (existingTimer.endsAt || existingTimer.extendedStartedAt || (existingTimer.status === "paused" && (existingTimer.remainingSeconds > 0 || existingTimer.mode === "extended"))));
+    const nextTimer = patch.done === true && !otherTimerBusy
+      ? { exerciseId: exercise.id, label: `${exercise.name} rest`, endsAt: wallClockNow() + 90000, remainingSeconds: 90, totalSeconds: 90, mode: "countdown" as const, status: "running" as const, elapsedSeconds: 0 }
+      : existingTimer;
+    if (patch.done === true && !otherTimerBusy) prepareTimerAudio();
+    const message = patch.done === true ? (otherTimerBusy ? `Set complete. ${existingTimer!.label} is still active, so the rest timer was not started.` : "Set complete — 90-second rest started.") : undefined;
+    save({ ...progress, activeWorkout: { ...progress.activeWorkout, setLogs: { ...progress.activeWorkout.setLogs, [key]: { ...current, ...patch } }, timer: nextTimer } }, message);
   }
 
   function updateCardio(exerciseId: string, patch: Partial<CardioLog>) {
@@ -170,12 +227,42 @@ export default function Home() {
 
   function startOrPauseTimer(exercise: Exercise, seconds: number) {
     const current = progress.activeWorkout?.timer;
-    if (current?.exerciseId === exercise.id && current.endsAt) {
-      setTimer({ ...current, endsAt: null, remainingSeconds: Math.max(0, Math.ceil((current.endsAt - Date.now()) / 1000)) });
-    } else {
-      const remaining = current?.exerciseId === exercise.id ? current.remainingSeconds : seconds;
-      setTimer({ exerciseId: exercise.id, label: exercise.name, endsAt: Date.now() + remaining * 1000, remainingSeconds: remaining, totalSeconds: seconds });
+    if (current && current.exerciseId !== exercise.id && (current.endsAt || current.extendedStartedAt || (current.status === "paused" && (current.remainingSeconds > 0 || current.mode === "extended")))) {
+      setNotice(`${current.label} is still running. Stop it before starting another timer.`);
+      return;
     }
+    prepareTimerAudio();
+    if (current?.exerciseId === exercise.id && current.endsAt) {
+      setTimer({ ...current, endsAt: null, remainingSeconds: timerRemaining(current, wallClockNow()), status: "paused" });
+    } else if (current?.exerciseId === exercise.id && current.mode === "extended" && current.extendedStartedAt) {
+      setTimer({ ...current, extendedStartedAt: null, elapsedSeconds: timerElapsed(current, wallClockNow()), status: "paused" });
+    } else if (current?.exerciseId === exercise.id && current.mode === "extended") {
+      setTimer({ ...current, extendedStartedAt: wallClockNow(), status: "running" });
+    } else {
+      const savedRemaining = current?.exerciseId === exercise.id ? current.remainingSeconds : seconds;
+      const remaining = savedRemaining > 0 ? savedRemaining : seconds;
+      setTimer({ exerciseId: exercise.id, label: exercise.name, endsAt: wallClockNow() + remaining * 1000, remainingSeconds: remaining, totalSeconds: seconds, mode: "countdown", status: "running", elapsedSeconds: 0 });
+    }
+  }
+
+  function keepGoing(exercise: Exercise) {
+    const current = progress.activeWorkout?.timer;
+    if (!current || current.exerciseId !== exercise.id) return;
+    prepareTimerAudio();
+    setTimer({ ...current, mode: "extended", status: "running", endsAt: null, extendedStartedAt: wallClockNow(), elapsedSeconds: current.elapsedSeconds ?? current.totalSeconds });
+  }
+
+  function stopTimer() {
+    if (!progress.activeWorkout?.timer) return;
+    const current = progress.activeWorkout.timer;
+    const exercise = findExercise(current.exerciseId);
+    let cardioLogs = progress.activeWorkout.cardioLogs;
+    if (exercise?.sets === 0) {
+      const elapsed = current.mode === "extended" ? timerElapsed(current, wallClockNow()) : Math.max(0, current.totalSeconds - timerRemaining(current, wallClockNow()));
+      const prior = cardioLogs[exercise.id] ?? { minutes: "", distance: "", effort: "", enjoyment: "" };
+      cardioLogs = { ...cardioLogs, [exercise.id]: { ...prior, minutes: String(Math.round(elapsed / 6) / 10) } };
+    }
+    save({ ...progress, activeWorkout: { ...progress.activeWorkout, cardioLogs, timer: undefined } }, exercise?.sets === 0 ? "Timer stopped and actual minutes saved." : "Rest timer stopped.");
   }
 
   function finishWorkout() {
@@ -207,14 +294,22 @@ export default function Home() {
   if (activeExercise && activeDay && progress.activeWorkout) {
     const defaultSeconds = timerSeconds[activeExercise.id] ?? 90;
     const exerciseTimer = progress.activeWorkout.timer?.exerciseId === activeExercise.id ? progress.activeWorkout.timer : undefined;
-    const remaining = exerciseTimer?.endsAt ? Math.max(0, Math.ceil((exerciseTimer.endsAt - clock) / 1000)) : exerciseTimer?.remainingSeconds ?? defaultSeconds;
+    const otherTimer = progress.activeWorkout.timer && progress.activeWorkout.timer.exerciseId !== activeExercise.id ? progress.activeWorkout.timer : undefined;
+    const remaining = exerciseTimer ? timerRemaining(exerciseTimer, clock) : defaultSeconds;
+    const elapsed = exerciseTimer ? timerElapsed(exerciseTimer, clock) : 0;
+    const timerIsExtended = exerciseTimer?.mode === "extended";
+    const timerIsComplete = exerciseTimer?.status === "complete" || Boolean(exerciseTimer && !exerciseTimer.endsAt && !timerIsExtended && remaining === 0);
+    const timerDisplay = timerIsExtended ? formatTimer(elapsed) : timerIsComplete ? (activeExercise.sets === 0 ? "Target complete" : "Rest complete") : formatTimer(remaining);
+    const otherTimerDisplay = otherTimer ? (otherTimer.mode === "extended" ? formatTimer(timerElapsed(otherTimer, clock)) : formatTimer(timerRemaining(otherTimer, clock))) : "";
+    const showOtherTimer = Boolean(otherTimer && (otherTimer.endsAt || otherTimer.extendedStartedAt || (otherTimer.status === "paused" && otherTimer.remainingSeconds > 0)));
     const cardio = progress.activeWorkout.cardioLogs[activeExercise.id] ?? { minutes: "", distance: "", effort: "", enjoyment: "" };
     return <main className="app-shell exercise-screen">
       {notice && <div className="notice" role="status">{notice}</div>}
       <button className="back-button" onClick={() => setActiveExercise(null)}>← Back to workout</button>
       {activeExercise.media ? <><button className="exercise-hero media-hero" onClick={() => setExpandedMedia(activeExercise.media)} aria-label={`Enlarge ${activeExercise.name} demonstration`}><img src={`${MEDIA_BASE}${activeExercise.media.src}`} alt={activeExercise.media.alt} /><span className="media-badge">Tap to enlarge animation</span></button>{activeExercise.media.reference && <section className="card equipment-reference"><div><p className="eyebrow">EQUIPMENT &amp; FORM REFERENCE</p><h2>{activeExercise.media.reference.label}</h2><p>Use this alongside the animation for equipment position and setup.</p></div><button onClick={() => setExpandedMedia(activeExercise.media!.reference)} aria-label={`Enlarge equipment reference for ${activeExercise.name}`}><img src={`${MEDIA_BASE}${activeExercise.media.reference.src}`} alt={activeExercise.media.reference.alt} /><span>Tap to enlarge</span></button></section>}</> : <div className="exercise-hero"><span>{activeExercise.icon}</span></div>}
       <p className="eyebrow">{activeExercise.type}</p><h1>{activeExercise.name}</h1><p className="lead">{activeExercise.prescription}</p>
-      <section className="card timer-card" aria-live="polite"><p className="eyebrow">{activeExercise.sets ? "REST TIMER" : "ACTIVITY TIMER"}</p><strong className={remaining === 0 ? "timer-finished" : ""}>{formatTimer(remaining)}</strong><div className="timer-actions"><button className="primary-button" onClick={() => startOrPauseTimer(activeExercise, defaultSeconds)}>{exerciseTimer?.endsAt ? "Pause" : remaining === 0 ? "Start again" : "Start timer"}</button><button className="secondary-button" onClick={() => setTimer({ exerciseId: activeExercise.id, label: activeExercise.name, endsAt: null, remainingSeconds: defaultSeconds, totalSeconds: defaultSeconds })}>Reset</button></div><small>Timer keeps accurate time if the screen locks or you switch apps.</small></section>
+      {showOtherTimer && otherTimer && <section className="card active-timer-banner" aria-live="polite"><div><p className="eyebrow">{otherTimer.endsAt || otherTimer.extendedStartedAt ? "TIMER STILL RUNNING" : "TIMER PAUSED"}</p><strong>{otherTimer.label}</strong><span>{otherTimerDisplay}</span></div><button className="secondary-button" onClick={stopTimer}>Stop timer</button></section>}
+      <section className="card timer-card" aria-live="polite"><p className="eyebrow">{timerIsExtended ? "KEEP GOING" : activeExercise.sets ? "REST TIMER" : "ACTIVITY TIMER"}</p><strong className={timerIsComplete ? "timer-finished" : ""}>{timerDisplay}</strong>{timerIsComplete && activeExercise.sets === 0 ? <div className="timer-actions"><button className="primary-button" onClick={() => keepGoing(activeExercise)}>Keep going</button><button className="secondary-button" onClick={() => startOrPauseTimer(activeExercise, defaultSeconds)}>Restart target</button></div> : <div className="timer-actions"><button className="primary-button" onClick={() => startOrPauseTimer(activeExercise, defaultSeconds)}>{exerciseTimer?.endsAt || exerciseTimer?.extendedStartedAt ? "Pause" : timerIsComplete ? "Start again" : exerciseTimer ? "Resume" : "Start timer"}</button><button className="secondary-button" onClick={() => { prepareTimerAudio(); setTimer({ exerciseId: activeExercise.id, label: activeExercise.name, endsAt: null, remainingSeconds: defaultSeconds, totalSeconds: defaultSeconds, mode: "countdown", status: "paused", elapsedSeconds: 0 }); }}>Reset</button></div>}{exerciseTimer && <button className="timer-stop-button" onClick={stopTimer}>Stop timer</button>}<small>{timerIsExtended ? "Stop when finished to save the complete cardio time." : "Timer stays accurate if the screen locks or you switch apps."}</small></section>
       <section className="card coaching-card"><div><h2>How to do it</h2><ol>{activeExercise.steps.map((step) => <li key={step}>{step}</li>)}</ol></div></section>
       <section className="card soft-card"><h2>Remember</h2><p>{activeExercise.cue}</p><p className="safety-copy">Stop if you feel sharp pain, dizziness, or unusual shortness of breath. Ask an adult for help with equipment setup.</p></section>
       {activeExercise.sets > 0 ? <section className="set-log-list"><h2>Log your sets</h2>{Array.from({ length: activeExercise.sets }, (_, index) => index + 1).map((setNumber) => { const log = progress.activeWorkout!.setLogs[setKey(activeExercise.id, setNumber)] ?? { weight: "", reps: "", done: !!progress.setChecks[legacySetKey(activeDay.id, activeExercise.id, setNumber)] }; return <article className={log.done ? "card set-log done" : "card set-log"} key={setNumber}><strong>Set {setNumber}</strong><label>Weight (lb)<input value={log.weight} onChange={(event) => updateSet(activeExercise, setNumber, { weight: event.target.value })} type="number" inputMode="decimal" min="0" step="0.5" placeholder="0 for bodyweight" /></label><label>Reps<input value={log.reps} onChange={(event) => updateSet(activeExercise, setNumber, { reps: event.target.value })} type="number" inputMode="numeric" min="0" step="1" /></label><button className="set-complete" onClick={() => updateSet(activeExercise, setNumber, { done: !log.done })}>{log.done ? "✓ Complete" : "Mark complete"}</button></article>; })}<p className="form-note">Enter only what you actually completed. Weight increases are never automatic.</p></section>
@@ -226,7 +321,9 @@ export default function Home() {
   if (activeDay && progress.activeWorkout) {
     const totalSets = activeDay.exercises.reduce((sum, exercise) => sum + exercise.sets, 0);
     const completedSets = activeDay.exercises.reduce((total, exercise) => total + Array.from({ length: exercise.sets }, (_, index) => progress.activeWorkout!.setLogs[setKey(exercise.id, index + 1)]?.done || progress.setChecks[legacySetKey(activeDay.id, exercise.id, index + 1)] ? 1 : 0).reduce<number>((sum, value) => sum + value, 0), 0);
-    return <main className="app-shell workout-screen">{notice && <div className="notice" role="status">{notice}</div>}<button className="back-button" onClick={() => setActiveDay(null)}>← Save and exit</button><p className="eyebrow">{activeDay.day} · {activeDay.duration}</p><h1>{activeDay.title}</h1><p className="lead">{activeDay.focus}</p><div className="progress-bar" aria-label={`${completedSets} of ${totalSets} strength sets complete`}><span style={{ width: totalSets ? `${Math.min(100, completedSets / totalSets * 100)}%` : "0%" }} /></div><div className="workout-list">{activeDay.exercises.map((exercise, index) => { const done = exercise.sets ? Array.from({ length: exercise.sets }, (_, setIndex) => progress.activeWorkout!.setLogs[setKey(exercise.id, setIndex + 1)]?.done).filter(Boolean).length : progress.activeWorkout!.cardioLogs[exercise.id]?.minutes ? 1 : 0; return <button className="exercise-row" key={exercise.id} onClick={() => setActiveExercise(exercise)}><span className="exercise-number">{done ? "✓" : index + 1}</span><span><strong>{exercise.name}</strong><small>{exercise.prescription}{done ? ` · ${exercise.sets ? `${done}/${exercise.sets} sets` : "logged"}` : ""}</small></span><span aria-hidden="true">›</span></button>; })}</div><button className="primary-button" onClick={finishWorkout}>Finish and save workout</button></main>;
+    const activeTimer = progress.activeWorkout.timer;
+    const activeTimerDisplay = activeTimer?.mode === "extended" ? formatTimer(timerElapsed(activeTimer, clock)) : activeTimer ? formatTimer(timerRemaining(activeTimer, clock)) : "";
+    return <main className="app-shell workout-screen">{notice && <div className="notice" role="status">{notice}</div>}<button className="back-button" onClick={() => setActiveDay(null)}>← Save and exit</button><p className="eyebrow">{activeDay.day} · {activeDay.duration}</p><h1>{activeDay.title}</h1><p className="lead">{activeDay.focus}</p>{activeTimer && (activeTimer.endsAt || activeTimer.extendedStartedAt) && <section className="card active-timer-banner" aria-live="polite"><div><p className="eyebrow">ACTIVE TIMER</p><strong>{activeTimer.label}</strong><span>{activeTimerDisplay}</span></div><button className="secondary-button" onClick={stopTimer}>Stop timer</button></section>}<div className="progress-bar" aria-label={`${completedSets} of ${totalSets} strength sets complete`}><span style={{ width: totalSets ? `${Math.min(100, completedSets / totalSets * 100)}%` : "0%" }} /></div><div className="workout-list">{activeDay.exercises.map((exercise, index) => { const done = exercise.sets ? Array.from({ length: exercise.sets }, (_, setIndex) => progress.activeWorkout!.setLogs[setKey(exercise.id, setIndex + 1)]?.done).filter(Boolean).length : progress.activeWorkout!.cardioLogs[exercise.id]?.minutes ? 1 : 0; return <button className="exercise-row" key={exercise.id} onClick={() => setActiveExercise(exercise)}><span className="exercise-number">{done ? "✓" : index + 1}</span><span><strong>{exercise.name}</strong><small>{exercise.prescription}{done ? ` · ${exercise.sets ? `${done}/${exercise.sets} sets` : "logged"}` : ""}</small></span><span aria-hidden="true">›</span></button>; })}</div><button className="primary-button" onClick={finishWorkout}>Finish and save workout</button></main>;
   }
 
   return <div className="app-shell"><header className="topbar"><div><p className="brand-kicker">KATELYNN&apos;S HOME GYM</p><h1>Katelynn Fit</h1></div><div className="avatar" aria-hidden="true">KF</div></header>{notice && <div className="notice" role="status">{notice}</div>}<main>
